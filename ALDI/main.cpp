@@ -19,10 +19,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
     icc.dwICC = ICC_STANDARD_CLASSES;
     InitCommonControlsEx(&icc);
 
-    const wchar_t CLASS_NAME[] = L"OffSetReaderWinClass";
+    const wchar_t CLASS_NAME[] = L"ALDIWinClass";
 
     WNDCLASSW wc{};
-    wc.lpfnWndProc = OffSetReader_WndProc;
+    wc.lpfnWndProc = ALDI_WndProc;
     wc.hInstance = hInstance;
     wc.lpszClassName = CLASS_NAME;
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
@@ -32,7 +32,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
     HWND hwnd = CreateWindowW(
         CLASS_NAME,
-        L"OffSetReader — Zydis 4.1.1 Edition",
+        L"ALDI — The Almond Disassembler (Zydis 4.1.1 Edition)",
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
         CW_USEDEFAULT, CW_USEDEFAULT,
         860, 680,
@@ -60,7 +60,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 
 
 
-//// OffSetReader.cpp — C++23 Win32 RE Tool using Zydis 4.1.1
+//// ALDI.cpp — C++23 Win32 RE Tool using Zydis 4.1.1
 ////
 //// - Hex viewer
 //// - Pattern search
@@ -869,7 +869,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 //int APIENTRY wWinMain(HINSTANCE hInst,
 //    HINSTANCE, LPWSTR, int)
 //{
-//    const wchar_t CLASS[] = L"OffSetReaderWin";
+//    const wchar_t CLASS[] = L"ALDIWin";
 //
 //    WNDCLASSW wc{};
 //    wc.lpfnWndProc = WndProc;
@@ -880,7 +880,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
 //    RegisterClassW(&wc);
 //
 //    CreateWindowW(CLASS,
-//        L"OffSetReader — Zydis 4.1.1 Edition",
+//        L"ALDI — The Almond Disassembler (Zydis 4.1.1 Edition)",
 //        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 //        CW_USEDEFAULT, CW_USEDEFAULT,
 //        860, 680,

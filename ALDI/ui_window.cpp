@@ -8,9 +8,9 @@ import mod_commands;
 #pragma comment(lib, "Comctl32.lib")
 
 // Global UI instance
-static OffSetReader_UI g_ui;
+static ALDI_UI g_ui;
 
-OffSetReader_UI& ui_state()
+ALDI_UI& ui_state()
 {
     return g_ui;
 }
@@ -141,7 +141,7 @@ static LRESULT CALLBACK CmdEditProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM l
 // Window procedure
 // ---------------------------------------------------------------------------
 
-LRESULT CALLBACK OffSetReader_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ALDI_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {

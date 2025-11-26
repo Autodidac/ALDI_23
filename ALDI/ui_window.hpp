@@ -4,7 +4,7 @@
 #include <windows.h>
 
 // Simple POD for UI handles. One instance for the whole app.
-struct OffSetReader_UI
+struct ALDI_UI
 {
     HWND hMain{}; // main window
     HWND hBtnOpen{};
@@ -15,7 +15,7 @@ struct OffSetReader_UI
 };
 
 // Global UI accessor (implemented in ui_window.cpp)
-OffSetReader_UI& ui_state();
+ALDI_UI& ui_state();
 
 // Main window procedure
-LRESULT CALLBACK OffSetReader_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK ALDI_WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
