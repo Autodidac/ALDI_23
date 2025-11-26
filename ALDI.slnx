@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="OffSetReader/OffSetReader.vcxproj" Id="bc251a75-fd84-4475-be3f-94c6018e8223" />
+  <Project Path="ALDI/ALDI.vcxproj" Id="bc251a75-fd84-4475-be3f-94c6018e8223" />
 </Solution>
