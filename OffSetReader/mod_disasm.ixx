@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-﻿export module mod_disasm;
-=======
 export module mod_disasm;
->>>>>>> origin/main
-=======
-export module mod_disasm;
->>>>>>> origin/main
 
 import <string>;
 import <sstream>;
@@ -15,16 +7,14 @@ import <cstddef>;
 import <cstdint>;
 import <vector>;
 import <span>;
-<<<<<<< HEAD
-<<<<<<< HEAD
-import <cstring>;   // memcpy
+import <cstring>;
 
 // Zydis include via vcpkg
 import "Zycore/Types.h";
 import "Zydis/Zydis.h";
 
 // -----------------------------------------------------------------------------
-// Minimal PE Layout
+// Minimal PE Layout helpers
 // -----------------------------------------------------------------------------
 
 struct PELayout
@@ -143,16 +133,19 @@ static bool FileFromRVA(const PELayout& L,
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// Proper disassembly (NOW PE-AWARE)
-// -----------------------------------------------------------------------------
-
+// ---------------------------------------------------------------------------
+// Disassemble code region using Zydis 4.1.1 with PE-aware addressing
+// ---------------------------------------------------------------------------
 export std::wstring DisasmRegion(
     std::span<const std::byte> data,
     std::size_t fileOffset,
     std::size_t size,
     std::uint64_t baseAddress)
 {
+    const std::size_t max = std::min(fileOffset + size, data.size());
+    if (fileOffset >= data.size() || max <= fileOffset)
+        return L"(empty)\r\n";
+
     std::wstringstream out;
 
     const PELayout PE = AnalyzePE(data);
@@ -163,7 +156,7 @@ export std::wstring DisasmRegion(
     }
 
     // Map offset→RVA (for real addresses)
-    std::uint32_t startRVA{};
+    std::uint32_t rva{};
     if (PE.valid)
     {
         if (fileOffset < PE.textRaw ||
@@ -173,51 +166,12 @@ export std::wstring DisasmRegion(
                 << L" is not in .text)\r\n";
             return out.str();
         }
-        startRVA = (std::uint32_t)(fileOffset - PE.textRaw + PE.textRVA);
+        rva = static_cast<std::uint32_t>(fileOffset - PE.textRaw + PE.textRVA);
     }
     else
     {
-        startRVA = (std::uint32_t)fileOffset;
+        rva = static_cast<std::uint32_t>(fileOffset);
     }
-
-    ZydisDecoder dec{};
-    ZydisFormatter fmt{};
-
-    ZydisDecoderInit(&dec, ZYDIS_MACHINE_MODE_LONG_64, ZYDIS_STACK_WIDTH_64);
-    ZydisFormatterInit(&fmt, ZYDIS_FORMATTER_STYLE_INTEL);
-
-    std::size_t max = std::min(fileOffset + size, data.size());
-    std::size_t off = fileOffset;
-    std::uint32_t rva = startRVA;
-
-    while (off < max)
-    {
-        ZydisDecodedInstruction ins{};
-        ZydisDecodedOperand ops[ZYDIS_MAX_OPERAND_COUNT]{};
-
-        if (!ZYAN_SUCCESS(ZydisDecoderDecodeFull(
-            &dec, data.data() + off, max - off, &ins, ops)))
-=======
-=======
->>>>>>> origin/main
-
-// Zydis 4.1.1 (as installed through vcpkg include folders)
-import "Zycore/Types.h";
-import "Zydis/Zydis.h";
-
-// ---------------------------------------------------------------------------
-// Disassemble code region using Zydis 4.1.1
-// ---------------------------------------------------------------------------
-export std::wstring DisasmRegion(
-    std::span<const std::byte> data,
-    std::size_t offset,
-    std::size_t size,
-    std::uint64_t baseAddress
-)
-{
-    const std::size_t end = offset + size;
-    if (offset >= data.size() || end <= offset)
-        return L"(empty)\r\n";
 
     ZydisDecoder decoder{};
     if (ZYAN_FAILED(ZydisDecoderInit(
@@ -236,12 +190,8 @@ export std::wstring DisasmRegion(
         return L"Formatter init failed\r\n";
     }
 
-    std::wstringstream out;
-    out << L"Disasm @ offset 0x"
-        << std::hex << offset << L"\r\n\r\n";
-
     ZyanUSize cur = 0;
-    ZyanUSize avail = static_cast<ZyanUSize>(std::min(end, data.size()) - offset);
+    ZyanUSize avail = static_cast<ZyanUSize>(max - fileOffset);
 
     while (cur < avail)
     {
@@ -250,47 +200,19 @@ export std::wstring DisasmRegion(
 
         if (!ZYAN_SUCCESS(ZydisDecoderDecodeFull(
             &decoder,
-            data.data() + offset + cur,
+            data.data() + fileOffset + cur,
             avail - cur,
             &inst,
             ops)))
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> origin/main
         {
             break;
         }
 
         char buf[256]{};
-<<<<<<< HEAD
-<<<<<<< HEAD
+
         ZyanU64 runtime = PE.valid ?
             (PE.imageBase + rva) :
             (baseAddress + rva);
-
-        ZydisFormatterFormatInstruction(
-            &fmt, &ins, ops, ins.operand_count_visible,
-            buf, sizeof(buf), runtime, nullptr);
-
-        // Write address
-        out << L"0x" << std::hex << runtime << L"  ";
-
-        // Write instruction text
-        std::wstring w;
-        for (char c : std::string(buf))
-        {
-            if (!c) break;
-            w.push_back((unsigned char)c);
-        }
-        out << w << L"\r\n";
-
-        off += ins.length;
-        rva += ins.length;
-=======
-=======
->>>>>>> origin/main
-        ZyanU64 addr = baseAddress + offset + cur;
 
         ZydisFormatterFormatInstruction(
             &fmt,
@@ -299,7 +221,7 @@ export std::wstring DisasmRegion(
             inst.operand_count_visible,
             buf,
             sizeof(buf),
-            addr,
+            runtime,
             nullptr);
 
         std::wstring ws;
@@ -309,39 +231,22 @@ export std::wstring DisasmRegion(
             ws.push_back(static_cast<unsigned char>(c));
         }
 
-        out << L"0x" << std::hex << addr << L"  " << ws << L"\r\n";
+        out << L"0x" << std::hex << runtime << L"  " << ws << L"\r\n";
+
         cur += inst.length;
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> origin/main
+        rva += inst.length;
     }
 
     return out.str();
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// -----------------------------------------------------------------------------
-// Disassemble a VFT table
-// -----------------------------------------------------------------------------
-
-=======
 // ---------------------------------------------------------------------------
 // VFT: virtual-function-table style RVA disassembly
 // ---------------------------------------------------------------------------
->>>>>>> origin/main
-=======
-// ---------------------------------------------------------------------------
-// VFT: virtual-function-table style RVA disassembly
-// ---------------------------------------------------------------------------
->>>>>>> origin/main
 export std::wstring DisasmVFT(
     std::span<const std::byte> data,
     std::size_t offset,
     std::size_t count,
-<<<<<<< HEAD
-<<<<<<< HEAD
     std::uint64_t baseAddress)
 {
     std::wstringstream out;
@@ -350,6 +255,12 @@ export std::wstring DisasmVFT(
     const std::size_t ptrSize = PE.is64 ? 8 : 4;
 
     out << L"VFT @ 0x" << std::hex << offset << L"\r\n\r\n";
+
+    if (offset + count * ptrSize > data.size())
+    {
+        out << L"(out of range)\r\n";
+        return out.str();
+    }
 
     for (std::size_t i = 0; i < count; i++)
     {
@@ -366,7 +277,7 @@ export std::wstring DisasmVFT(
         out << L"[#" << i << L"] 0x" << std::hex << va << L"\r\n";
 
         // Map VA→RVA→file offset
-        std::uint32_t rva = (std::uint32_t)(va - PE.imageBase);
+        std::uint32_t rva = static_cast<std::uint32_t>(va - PE.imageBase);
         std::size_t codeOff{};
 
         if (!PE.valid || !FileFromRVA(PE, rva, codeOff))
@@ -376,51 +287,6 @@ export std::wstring DisasmVFT(
         }
 
         out << DisasmRegion(data, codeOff, 64, baseAddress) << L"\r\n";
-=======
-=======
->>>>>>> origin/main
-    std::uint64_t baseAddress
-)
-{
-    std::wstringstream out;
-
-    out << L"VFT @ file offset 0x"
-        << std::hex << offset
-        << L", count "
-        << std::dec << count << L"\r\n\r\n";
-
-    if (offset + count * 8 > data.size())
-    {
-        out << L"(out of range)\r\n";
-        return out.str();
-    }
-
-    for (std::size_t i = 0; i < count; ++i)
-    {
-        std::size_t off = offset + i * 8;
-        std::uint64_t rva{};
-        std::memcpy(&rva, data.data() + off, 8);
-
-        out << L"[#" << i << L"] RVA 0x" << std::hex << rva;
-
-        if (rva < data.size())
-        {
-            out << L" (file off 0x" << rva << L")\r\n";
-            out << DisasmRegion(
-                data,
-                static_cast<std::size_t>(rva),
-                64,
-                baseAddress + rva);
-            out << L"\r\n";
-        }
-        else
-        {
-            out << L" (out of file range)\r\n";
-        }
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> origin/main
     }
 
     return out.str();
