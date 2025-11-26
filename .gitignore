@@ -31,4 +31,8 @@
 *.out
 *.app
 
-*/.vs/
+Debug/
+Release/
+x64/
+vcpkg_installed/
+.vs/
